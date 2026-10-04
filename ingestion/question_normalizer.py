@@ -1,105 +1,1 @@
-import re
-
-VALID_OPTIONS = {"A", "B", "C", "D"}
-
-def normalize_text(value):
-       # Remove unnecessary whitespace from a text field.
-
-    if value is None:
-        return None
-
-    value = str(value).strip()
-
-    # Replace multiple spaces/newlines/tabs with one space
-    value = re.sub(r"\s+"," ", value)
-
-    return value
-
-def normalize_correct_option(value):
-    # Convert an answer value into A/B/C/D format.
-
-    if value is None:
-        return None
-
-    value = str(value).strip().upper()
-
-    # Remove common formatting around the answer.
-    value = value.replace("OPTION", "").strip()
-    value = value.replace("(", "").replace(")", "").strip()
-    value = value.replace(".", "").strip()
-
-    if value in VALID_OPTIONS:
-        return value
-
-    return None
-
-def normalize_question(question):
-    # Normalize parsed question.
-
-    normalized = {
-        "text": normalize_text(question.get("text")),
-        "option_a": normalize_text(question.get("option_a")),
-        "option_b": normalize_text(question.get("option_b")),
-        "option_c": normalize_text(question.get("option_c")),
-        "option_d": normalize_text(question.get("option_d")),
-        "correct_option": normalize_correct_option(question.get("correct_option")),
-        "explanation": normalize_text(question.get("explanation")),
-        "difficulty": normalize_text(question.get("difficulty")),
-        "source": normalize_text(question.get("source")),
-    }
-
-    return normalized
-
-def normalize_questions(questions):
-    # Normalize a list of parsed questions.
-
-    normalized_questions = []
-
-    for question in questions:
-        normalized_question = normalize_question(question)
-        normalized_questions.append(normalized_question)
-
-    return normalized_questions
-
-def validate_question(question):
-    # Check weather a normalized question has all required fields.
-
-    required_fields = [
-        "text",
-        "option_a",
-        "option_b",
-        "option_c",
-        "option_d",
-    ]
-
-    missing_fields = []
-    for field in required_fields:
-        if not question.get(field):
-            missing_fields.append(field)
-
-    return missing_fields
-
-def find_duplicates(questions):
-    """
-    Find duplicate questions based on normalized question text.
-    """
-    seen_questions = {}
-    duplicates = []
-
-    for index, question in enumerate(questions, start=1):
-        text = question.get("text")
-
-        if not text:
-            continue
-
-        question_key = text.casefold()
-
-        if question_key in seen_questions:
-            duplicates.append({
-                "duplicate_index": index,
-                "original_index": seen_questions[question_key],
-            })
-        else:
-            seen_questions[question_key] = index
-
-    return duplicates
+import reVALID_OPTIONS = {"A", "B", "C", "D"}def normalize_text(value):       # Remove unnecessary whitespace from a text field.    if value is None:        return None    value = str(value).strip()    # Replace multiple spaces/newlines/tabs with one space    value = re.sub(r"\s+"," ", value)    return valuedef normalize_correct_option(value):    # Convert an answer value into A/B/C/D format.    if value is None:        return None    value = str(value).strip().upper()    # Remove common formatting around the answer.    value = value.replace("OPTION", "").strip()    value = value.replace("(", "").replace(")", "").strip()    value = value.replace(".", "").strip()    if value in VALID_OPTIONS:        return value    return Nonedef normalize_question(question):    # Normalize parsed question.    option_a = normalize_text(question.get("option_a"))    option_b = normalize_text(question.get("option_b"))    option_c = normalize_text(question.get("option_c"))    option_d = normalize_text(question.get("option_d"))    answer = question.get("correct_option")    # First handle answers written as A\B\C\D.    correct_option = normalize_correct_option(answer)    # If the answer is the actual option text, find option it matches.    if correct_option is None and answer is not None:        normalized_answer = normalize_text(answer)        options = {            "A":option_a,            "B":option_b,            "C":option_c,            "D":option_d,        }        for letter, option in options.items():            if option is not None and normalized_answer == option:                correct_option = letter                break    normalized = {        "text": normalize_text(question.get("text")),        "option_a": normalize_text(question.get("option_a")),        "option_b": normalize_text(question.get("option_b")),        "option_c": normalize_text(question.get("option_c")),        "option_d": normalize_text(question.get("option_d")),        "correct_option": correct_option,        "explanation": normalize_text(question.get("explanation")),        "difficulty": normalize_difficulty(question.get("difficulty")),        "subject": normalize_text(question.get("subject")),        "chapter": normalize_text(question.get("chapter")),        "year": normalize_year(question.get("year")),        "source": normalize_text(question.get("source"))    }    return normalizeddef normalize_questions(questions):    # Normalize a list of parsed questions.    normalized_questions = []    for question in questions:        normalized_question = normalize_question(question)        normalized_questions.append(normalized_question)    return normalized_questionsdef validate_question(question):    # Check weather a normalized question has all required fields.    required_fields = [        "text",        "option_a",        "option_b",        "option_c",        "option_d",        "correct_option",    ]    missing_fields = []    for field in required_fields:        if not question.get(field):            missing_fields.append(field)    return missing_fieldsdef find_duplicates(questions):    """    Find duplicate questions based on normalized question text.    """    seen_questions = {}    duplicates = []    for index, question in enumerate(questions, start=1):        text = question.get("text")        if not text:            continue        question_key = text.casefold()        if question_key in seen_questions:            duplicates.append({                "duplicate_index": index,                "original_index": seen_questions[question_key],            })        else:            seen_questions[question_key] = index    return duplicatesdef normalize_year(value):    if value is None:        return None    try:        return int(str(value).strip())    except (TypeError, ValueError):        return Nonedef normalize_difficulty(value):    if value is None:        return None    value  = str(value).strip().title()    if value in {"Easy", "Medium", "Hard"}:        return value    return None

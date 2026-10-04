@@ -298,7 +298,8 @@ class MCQQuestionSchema(BaseModel):
     difficulty: Literal["Easy", "Medium", "Hard"] = "Medium"
     subject: Optional[str] = None
     chapter: Optional[str] = None
-    year: Optional[int] = None  
+    year: Optional[int] = None
+    source: str = Field(...,min_length = 1)
 
     @field_validator("correct_option")
     @classmethod
@@ -671,7 +672,8 @@ def main() -> int:
         "difficulty": "Easy",
         "subject": "Biology",
         "chapter": "Cell: The Unit of Life",
-        "year": 2027
+        "year": 2027,
+        "source": "Validation Test",
     }
 
     report = run_pipeline(validator, raw_candidate, llm=llm)
